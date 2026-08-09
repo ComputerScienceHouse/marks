@@ -1,0 +1,21 @@
+services:
+  redis:
+    image: redis:7
+    container_name: csh-marks-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - csh-marks-network
+
+  csh-marks:
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      - DEV_MODE=false
+    networks:
+      - csh-marks-network
+
+networks:
+  csh-marks-network:
