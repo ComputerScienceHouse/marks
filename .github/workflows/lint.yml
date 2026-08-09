@@ -17,6 +17,16 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Build frontend
+        run: |
+          cd web
+          npm ci
+          npm run build
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
