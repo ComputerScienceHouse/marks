@@ -2,6 +2,7 @@ name: Docker
 on:
   push:
     branches:
+      - zxcv #for test
       - dev
       - main
   # Run tests for any PRs.
