@@ -1,0 +1,41 @@
+FROM node:22-alpine AS npmbuilder
+
+WORKDIR /app
+
+COPY web/package*.json ./
+
+RUN npm ci
+
+COPY web/ .
+
+RUN npm run build
+
+FROM golang:1.26.2-alpine AS gobuilder
+
+WORKDIR /app
+
+RUN apk add git
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+
+COPY go.* .
+RUN go mod download
+COPY internal internal
+
+COPY *.go .
+COPY --from=npmbuilder /app/dist/ ./web/dist/
+
+RUN /go/bin/swag init --parseInternal --parseDependency
+
+RUN go build -o server .
+
+FROM alpine:latest
+
+RUN apk add --no-cache ffmpeg curl
+
+WORKDIR /app
+COPY --from=gobuilder /app/server .
+
+EXPOSE 8080
+
+CMD ["./server"]
+
