@@ -1,0 +1,24 @@
+* Database Schema
+
+** Events
+- id (UUID) (PRIMARY)
+- name (TEXT) (NOT NULL)
+- created_at (TIMESTAMP) (NOT NULL)
+- created_by (UUID) (NOT NULL)
+- status (TEXT) (NOT NULL) (open|archived)
+
+** Timers
+- user_uuid (UUID) (NOT NULL)  UNIQUE(user_uuid,event_id) # uniquely identifies a user's timer for an event
+- event_id (UUID) (NOT NULL)   FOREIGN KEY(event_id) REFERENCES events(id) # references to events(id)
+- start_time (TIMESTAMP)
+- end_time (TIMESTAMP)
+
+
+** Audit Logs
+- id (UUID) (PRIMARY KEY)
+- event_id (UUID) (NOT NULL)
+- user_uuid (UUID) (NOT NULL)
+- action (TEXT) (NOT NULL)
+- created_at (TIMESTAMP) (NOT NULL)
+
+* API #TODO

@@ -1,0 +1,26 @@
+name: Docker
+on:
+  push:
+    branches:
+      - dev
+      - main
+  # Run tests for any PRs.
+  pull_request:
+    branches:
+      - dev
+      - main
+env:
+  IMAGE_NAME: marks
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Run tests
+        run: |
+          if [ -f docker-compose.test.yml ]; then
+            docker-compose --file docker-compose.test.yml build
+            docker-compose --file docker-compose.test.yml run sut
+          else
+            docker build . --file Dockerfile
+          fi
