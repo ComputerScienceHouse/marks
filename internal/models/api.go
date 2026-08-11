@@ -7,3 +7,7 @@ type SuccessResponse struct {
 type ErrorResponse struct {
 	Message string `json:"message"`
 }
+
+type UnauthorizedResponse struct {
+	Message string `json:"message"`
+}

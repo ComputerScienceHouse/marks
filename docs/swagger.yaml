@@ -1,0 +1,408 @@
+basePath: /api/v1
+definitions:
+  models.ArchiveEventInput:
+    properties:
+      id:
+        type: string
+    type: object
+  models.CreateNewEventInput:
+    properties:
+      name:
+        type: string
+    type: object
+  models.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  models.GetActionGroupCursor:
+    properties:
+      row_id:
+        type: string
+      timestamp:
+        type: integer
+    type: object
+  models.GetActionGroupInput:
+    properties:
+      row_id:
+        type: string
+      timestamp:
+        type: integer
+    type: object
+  models.GetActionGroupPart:
+    properties:
+      action:
+        type: string
+      row_id:
+        type: string
+      timestamp:
+        type: integer
+      user_email:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.GetActionsGroupOutput:
+    properties:
+      actions:
+        items:
+          $ref: '#/definitions/models.GetActionGroupPart'
+        type: array
+      cursor:
+        $ref: '#/definitions/models.GetActionGroupCursor'
+    type: object
+  models.GetLeaderboardEntry:
+    properties:
+      event_name:
+        type: string
+      time:
+        type: integer
+      username:
+        type: string
+    type: object
+  models.GetLeaderboardGroupOutput:
+    properties:
+      can_modify:
+        type: boolean
+      entries:
+        items:
+          $ref: '#/definitions/models.GetLeaderboardEntry'
+        type: array
+    type: object
+  models.GetLeaderboardTopOutput:
+    properties:
+      can_modify:
+        type: boolean
+      entries:
+        items:
+          $ref: '#/definitions/models.GetLeaderboardEntry'
+        type: array
+    type: object
+  models.OpenEventInput:
+    properties:
+      id:
+        type: string
+    type: object
+  models.RemoveLeaderboardEntryInput:
+    properties:
+      event_id:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.RemoveLeaderboardEntryOutput:
+    type: object
+  models.ResetUserTimerInput:
+    properties:
+      event_id:
+        type: string
+    type: object
+  models.StartUserTimerInput:
+    properties:
+      event_id:
+        type: string
+    type: object
+  models.StopUserTimerInput:
+    properties:
+      event_id:
+        type: string
+    type: object
+  models.UnauthorizedResponse:
+    properties:
+      message:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: How Fast Can You Eat?
+  title: CSH Marks
+  version: "1.0"
+paths:
+  /api/v1/actions/group:
+    post:
+      consumes:
+      - application/json
+      description: Gets a group of logged actions for auditing
+      parameters:
+      - description: Action Group
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.GetActionGroupInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.GetActionsGroupOutput'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Gets a group of logged actions
+      tags:
+      - actions
+  /api/v1/events/archive:
+    post:
+      consumes:
+      - application/json
+      description: Archives an Event to no longer be eligible for timing.
+      parameters:
+      - description: Action Group
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ArchiveEventInput'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.UnauthorizedResponse'
+      summary: Archives an Event
+      tags:
+      - actions
+  /api/v1/events/create:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new Event instance for timer sessions
+      parameters:
+      - description: Name
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateNewEventInput'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.UnauthorizedResponse'
+      summary: Creates a New Event Instance
+      tags:
+      - events
+  /api/v1/events/get:
+    get:
+      consumes:
+      - application/json
+      description: Gets all open Events for standard users, or everything for Authorized
+        Admins.
+      parameters:
+      - description: Action Group
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ArchiveEventInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.UnauthorizedResponse'
+      summary: Gets All Authorized Events
+      tags:
+      - actions
+  /api/v1/events/open:
+    post:
+      consumes:
+      - application/json
+      description: Opens an Event to be eligible for timing.
+      parameters:
+      - description: Action Group
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.OpenEventInput'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.UnauthorizedResponse'
+      summary: Opens an Event
+      tags:
+      - actions
+  /api/v2/leaderboard/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a User timer for a specific event, updating leaderboards
+        accordingly
+      parameters:
+      - description: User / Event Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.RemoveLeaderboardEntryInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.RemoveLeaderboardEntryOutput'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.UnauthorizedResponse'
+      summary: Removes an Entry
+      tags:
+      - leaderboard
+  /api/v2/leaderboard/top:
+    get:
+      description: Gets Data from a leaderboard database, supports pagination with
+        the cursor
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.GetLeaderboardGroupOutput'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.UnauthorizedResponse'
+      summary: Gets Data for a Leaderboard
+      tags:
+      - leaderboard
+  /api/v2/timer/reset:
+    post:
+      consumes:
+      - application/json
+      description: Resets a User's Timer for the specified event. No-op if timer is
+        not started
+      parameters:
+      - description: Event Id
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ResetUserTimerInput'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.UnauthorizedResponse'
+      summary: Resets a User's Timer
+      tags:
+      - timer
+  /api/v2/timer/start:
+    post:
+      consumes:
+      - application/json
+      description: Starts a User's Timer for the specified event. No-op if already
+        started
+      parameters:
+      - description: Event Id
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.StartUserTimerInput'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.UnauthorizedResponse'
+      summary: Starts a User's Timer
+      tags:
+      - timer
+  /api/v2/timer/stop:
+    post:
+      consumes:
+      - application/json
+      description: Stops a User's Timer for the specified event. No-op if timer is
+        already stopped
+      parameters:
+      - description: Event Id
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.StopUserTimerInput'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.UnauthorizedResponse'
+      summary: Stops a User's Timer
+      tags:
+      - timer
+swagger: "2.0"

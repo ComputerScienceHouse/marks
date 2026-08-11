@@ -14,8 +14,8 @@ import (
 	"github.com/ComputerScienceHouse/marks/internal/models"
 	"github.com/ComputerScienceHouse/marks/internal/redis"
 
-	cshauth "github.com/computersciencehouse/csh-auth/v2"
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 
 	_ "github.com/ComputerScienceHouse/marks/docs"
@@ -37,11 +37,25 @@ func serveFrontend(c *gin.Context) {
 }
 
 func chooseRouter() *gin.Engine {
+	var router *gin.Engine
 	if os.Getenv("DEV_MODE") == "true" {
-		return gin.Default()
+		router = gin.Default()
+
+		router.Use(gin.LoggerWithConfig(gin.LoggerConfig{ //shut the f up
+			SkipPaths: []string{"/health"},
+		}))
+
+	} else {
+		router = gin.New()
 	}
 
-	return gin.New()
+	router.Use(gzip.Gzip(gzip.DefaultCompression))
+	router.Use(cors.Default())
+
+	router.GET("/health", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusNoContent, gin.H{})
+	})
+	return router
 }
 
 func createFrontend(frontend *gin.RouterGroup) error {
@@ -63,10 +77,12 @@ func createFrontend(frontend *gin.RouterGroup) error {
 
 	icon, err := fs.ReadFile(dist, "favicon.png")
 	if err != nil {
-		return fmt.Errorf("failed to load favicon %s", err)
+		icon, err = fs.ReadFile(dist, "favicon.svg") //fallback
+		if err != nil {
+			return fmt.Errorf("failed to load favicon %s", err)
+		}
 	}
 
-	frontend.Use(cors.Default())
 	frontend.StaticFS("/assets", http.FS(assets))
 
 	frontend.GET("/favicon.ico", func(ctx *gin.Context) {
@@ -104,30 +120,23 @@ func main() {
 
 	if err := database.InitDatabase(); err != nil {
 		//yeah we need ts gng :pray:
-		// logging.Logger.Fatalf("failed to initialize database for the app %s", err) ignore for now
+		logging.Logger.Warnf("failed to initialize database for the app %s", err)
 	}
 
-	hostUrl := os.Getenv("SERVER_HOST")
-	auth, err := cshauth.Init(
-		os.Getenv("AUTH_OIDC_ID"),
-		os.Getenv("AUTH_OIDC_SECRET"),
-		hostUrl,
-		hostUrl+"/auth/login",
-		hostUrl+"/auth/callback",
-		[]string{"profile", "email", "groups"},
-	)
-	if err != nil {
-		logging.Logger.Fatalf("failed to initialize csh auth for the app %s", err)
-	}
+	// hostUrl := os.Getenv("SERVER_HOST")
+	// auth, err := csh_auth.Init(
+	// 	os.Getenv("AUTH_OIDC_ID"),
+	// 	os.Getenv("AUTH_OIDC_SECRET"),
+	// 	hostUrl,
+	// 	hostUrl+"/auth/login",
+	// 	hostUrl+"/auth/callback",
+	// 	[]string{"profile", "email", "groups"},
+	// )
+	// if err != nil {
+	// 	logging.Logger.Fatalf("failed to initialize csh auth for the app %s", err)
+	// }
 
 	router := chooseRouter()
-	router.GET("/health", func(ctx *gin.Context) {
-		ctx.JSON(http.StatusNoContent, gin.H{})
-	})
-
-	router.Use(gin.LoggerWithConfig(gin.LoggerConfig{ //shut the f up
-		SkipPaths: []string{"/health"},
-	}))
 
 	frontend := router.Group("")
 	api := router.Group("/api")
@@ -141,7 +150,8 @@ func main() {
 			logging.Logger.Fatalf("failed to create frontend %s", err)
 		}
 
-		router.NoRoute(auth.CookieMiddleware(), func(c *gin.Context) {
+		router.NoRoute(func(c *gin.Context) {
+			// router.NoRoute(auth.CookieMiddleware(), func(c *gin.Context) {
 			reqURL := c.Request.URL.String()
 
 			if strings.Contains(reqURL, "api/") {
@@ -155,5 +165,8 @@ func main() {
 
 	}
 
-	router.Run(":8080")
+	err := router.Run(":8080")
+	if err != nil {
+		logging.Logger.Fatalf("router shutting down %s", err)
+	}
 }
