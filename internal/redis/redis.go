@@ -29,5 +29,11 @@ func InitRedis() error {
 
 	RedisInitalized = true
 	client = newClient
+
+	_, err = client.Ping(ctx).Result()
+	if err != nil {
+		_ = client.Close()
+		return err
+	}
 	return nil
 }

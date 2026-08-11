@@ -120,7 +120,7 @@ func main() {
 
 	if err := database.InitDatabase(); err != nil {
 		//yeah we need ts gng :pray:
-		// logging.Logger.Fatalf("failed to initialize database for the app %s", err) ignore for now
+		logging.Logger.Warnf("failed to initialize database for the app %s", err)
 	}
 
 	// hostUrl := os.Getenv("SERVER_HOST")
@@ -165,5 +165,8 @@ func main() {
 
 	}
 
-	router.Run(":8080")
+	err := router.Run(":8080")
+	if err != nil {
+		logging.Logger.Fatalf("router shutting down %s", err)
+	}
 }

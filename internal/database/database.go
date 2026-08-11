@@ -42,6 +42,11 @@ func InitDatabase() error {
 	}
 
 	db = newDB
+
+	err = db.Ping(ctx)
+	if err != nil {
+		return err
+	}
 	DatabaseInitalized = true
 
 	return nil
