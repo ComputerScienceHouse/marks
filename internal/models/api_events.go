@@ -6,8 +6,10 @@ type CreateNewEventInput struct {
 type CreateNewEventOutput struct{}
 
 type OpenEventInput struct {
-	ID string `json:"id"`
+	ID     string `json:"id"`
+	Length int64  `json:"length"`
 }
+
 type OpenEventOutput struct{}
 
 type ArchiveEventInput struct {

@@ -6,4 +6,6 @@ type LeaderboardEntry struct {
 
 	EventID   string `json:"event_id"`
 	EventName string `json:"event_name"`
+
+	Duration TimerValue `json:"duration"`
 }

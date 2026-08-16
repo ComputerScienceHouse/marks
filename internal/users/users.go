@@ -2,11 +2,13 @@ package users
 
 import (
 	"errors"
+	"net/http"
 	"os"
 	"slices"
 	"strconv"
 
 	"github.com/ComputerScienceHouse/marks/internal/logging"
+	"github.com/ComputerScienceHouse/marks/internal/models"
 	csh_auth "github.com/computersciencehouse/csh-auth/v2"
 	"github.com/gin-gonic/gin"
 )
@@ -43,11 +45,17 @@ func GetCSHAuth(c *gin.Context) (*csh_auth.UserInfo, error) {
 	userAny, exists := c.Get("cshauth")
 
 	if !exists {
+		c.JSON(http.StatusUnauthorized, models.UnauthorizedResponse{
+			Message: "Unable to verify authentication",
+		})
 		return nil, errors.New("unable to load csh auth")
 	}
 
 	userClaims, ok := userAny.(*csh_auth.Claims)
 	if !ok {
+		c.JSON(http.StatusUnauthorized, models.UnauthorizedResponse{
+			Message: "Unable to verify authentication",
+		})
 		return nil, errors.New("unable to cast csh auth")
 	}
 
